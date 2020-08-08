@@ -9,6 +9,8 @@
     {
         Pass
         {
+			Cull Back
+
             CGPROGRAM
             #pragma vertex vert 
             #pragma fragment frag
@@ -58,11 +60,22 @@
 			//Projection Transform Matrix
 			float4x4 ProjectionTransformMatrix4x4(float fovy, float aspect, float n, float f)
 			{
-				//DirectX 환경에 맞추어 P Matrix가 약간 변형됨(clip space 좌표가 다름)
+				//https://www.sysnet.pe.kr/2/0/11695
 				float4x4 P = { 1 / (tan(fovy / 2)* aspect),	0,	0,	0,
 							   0, -1/tan(fovy / 2), 0, 0,
-							   0, 0, -f/(f-n), -n*f/(f-n),
+							   0, 0, -(f)/(f-n), -n*f/(f-n),
 							   0, 0, -1, 0 };
+				return P;
+			}
+
+			float4x4 ProjectionTransformMatrix4x4Alt(float l, float r, float t, float b, float n, float f)
+			{
+
+				float4x4 P = { (2 * n) / (r - l) ,	0,	0,	0,
+							   0, -(2*n)/(t-b), 0, 0,
+							   0, 0, -f/(f-n), -(f*n)/(f-n),
+							   0, 0, -1, 0 };
+
 				return P;
 			}
 
@@ -87,11 +100,12 @@
 				//pos = mul(UNITY_MATRIX_V, pos);
 				pos = mul(V,pos);
 
-				float4x4 P = ProjectionTransformMatrix4x4(3.14 / 3, 1, 0.1, 10);
-				pos = mul(UNITY_MATRIX_P,pos);
-				//pos = mul(P, pos);
+				//float4x4 P = ProjectionTransformMatrix4x4(3.14 / 2, 1, 0.1, 20);
+				float4x4 P = ProjectionTransformMatrix4x4Alt(-1, 1, 1, -1, 1, 20);
+				//pos = mul(UNITY_MATRIX_P,pos);
+				pos = mul(P, pos);
+				
 				o.vertex = pos;
-
                 o.uv = v.uv; 
                 return o;
             }
